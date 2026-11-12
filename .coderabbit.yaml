@@ -16,3 +16,12 @@ reviews:
           tests, and comments, regardless of whether the value appears to be a demo,
           placeholder, or test value. Pass only if credentials are read at runtime
           from the environment or a secret manager.
+  path_instructions:
+    - path: "**/*.py"
+      instructions: >
+        - Treat any string literal assigned to a name containing KEY, TOKEN, SECRET,
+          PASSWORD, or CREDENTIAL as a hardcoded credential and flag it as a security
+          issue, even if the value looks like a demo, placeholder, or test value.
+        - Flag unused imports, unused variables, and dead code as actionable comments.
+        - Flag resources opened without a context manager.
+        - Flag new modules that are added without corresponding tests under tests/.
