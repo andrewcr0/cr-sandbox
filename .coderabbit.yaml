@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# .coderabbit.yaml for andrewcr0/cr-sandbox (test config)
+# Based on https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1
+# Changes vs. the gist are marked  # CHANGED  or  # ADDED
+# Goal: get the automated review to flag the two flaws it skipped on PR #1:
+#   - unused `import os`
+#   - hardcoded `API_KEY = "hardcoded-demo-key-1234"`
+
+language: en-US
+
+knowledge_base:
+  automatic_linking_mode: enabled
+  code_guidelines:
+    filePatterns: []
+
+reviews:
+  profile: assertive                    # CHANGED (gist: chill), matches the current repo UI setting
+  enable_prompt_for_ai_agents: true
+  slop_detection:
+    enabled: true
+
+  # ADDED: concrete review rules for this repo. The gist's only path rule was commented out,
+  # and it said "avoid style… prefer no comment", which would suppress exactly what we want.
+  path_instructions:
+    - path: "**/*.py"
+      instructions: >
+        - Treat any string literal assigned to a name containing KEY, TOKEN, SECRET, PASSWORD,
+          or CREDENTIAL as a hardcoded credential and flag it as a security issue, even if
+          the value looks like a demo, placeholder, or test value. Recommend loading it from
+          the environment or a secret manager and rotating it if it was ever real.
+        - Flag unused imports, unused variables, and dead code (Ruff F401/F841-class issues)
+          as actionable comments, not just walkthrough notes.
+        - Flag resources opened without a context manager.
+        - Flag new modules that are added without corresponding tests under tests/.
+    - path: "tests/**"
+      instructions: >
+        - Check that tests cover edge cases (empty input, error paths), not only the happy path.
+
+  pre_merge_checks:
+    override_requested_reviewers_only: false
+    custom_checks:
+      # ADDED: adapted from the gist's commented-out "Sensitive Data Protection" check
+      - mode: warning
+        name: No hardcoded credentials
+        instructions: >
+          Fail if the PR adds or modifies any hardcoded credential, API key, token, password,
+          or secret in source code, config, or tests, regardless of whether the value appears
+          to be a demo or placeholder. Pass only if credentials are read from the environment,
+          a secret manager, or are clearly-documented test fixtures outside production code.
+    title:
+      mode: warning                     # CHANGED (gist: off), keep it visible while exploring
+    description:
+      mode: off
+    issue_assessment:
+      mode: off
+    docstrings:
+      mode: off
+      threshold: 80
+
+  # ADDED: be explicit that the linters and secret scanners are on
+  tools:
+    ruff:
+      enabled: true
+    pylint:
+      enabled: true
+    flake8:
+      enabled: true
+    gitleaks:                            # = Betterleaks
+      enabled: true
+    trufflehog:
+      enabled: true
+
+  post_merge_actions: []
+  finishing_touches:
+    custom: []
+
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+  suggested_reviewers_instructions: []
+
+  suggested_labels: true
+  auto_apply_labels: false
+  labeling_instructions: []
+  mutually_exclusive_groups: {}
+
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+
+  high_level_summary: true
+
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches: [".*"]
+
+  sequence_diagrams: true
+  changed_files_summary: true
+  collapse_walkthrough: true
+  estimate_code_review_effort: true     # CHANGED (gist: false), useful for comparison runs
+  high_level_summary_in_walkthrough: true
+  in_progress_fortune: false
+  review_details: true                  # CHANGED (gist: false), keeps "Review info" (profile, run ID) visible
+  poem: false
+
+  commit_status: true                   # CHANGED (gist: false), keeps the "CodeRabbit" GitHub check
+  fail_commit_status: false
+  review_progress: false
+  review_status: true                   # CHANGED (gist: false)
+
+  request_changes_workflow: false
+  # NOTE: removed the gist's auto_title_placeholder/auto_title_instructions. They're not
+  # relevant to this test, and "[cr]" would trigger CodeRabbit to rewrite PR titles.
+
+inheritance: true
+
+chat:
+  art: false
+  auto_reply: true
