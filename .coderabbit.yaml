@@ -6,3 +6,13 @@ reviews:
   auto_review:
     enabled: true
     auto_incremental_review: false
+  pre_merge_checks:
+    custom_checks:
+      - mode: warning
+        name: No hardcoded credentials
+        instructions: >
+          Fail if the PR adds or modifies any hardcoded credential, API key, token,
+          password, or secret literal in any file, including source code, config,
+          tests, and comments, regardless of whether the value appears to be a demo,
+          placeholder, or test value. Pass only if credentials are read at runtime
+          from the environment or a secret manager.
